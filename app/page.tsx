@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Walkthrough from '@/components/Walkthrough'
 
 export default function LandingPage() {
   return (
@@ -257,6 +258,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Interactive Walkthrough Section */}
+      <Walkthrough />
 
       {/* Testimonials Section */}
       <section className="px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50 to-indigo-50">
