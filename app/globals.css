@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+:root {
+  --color-background: #0b0f14;
+  --color-foreground: #e8edf4;
+  --color-muted: #8b9bb0;
+  --color-accent: #f97316;
+  --color-accent-soft: rgba(249, 115, 22, 0.15);
+  --color-card: #121820;
+  --color-card-border: #1f2a38;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
