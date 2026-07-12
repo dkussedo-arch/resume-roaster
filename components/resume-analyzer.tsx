@@ -9,6 +9,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 
+import { DocumentUploadLazy } from '@/components/document-upload-lazy'
 import type { AnalysisResult, InferredContext } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +30,7 @@ export function ResumeAnalyzer() {
     null
   )
   const [contextConfirmed, setContextConfirmed] = useState(false)
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null)
 
   const runAnalysis = async (confirmedContext?: InferredContext) => {
     if (!resumeText.trim() || loading) {
@@ -112,17 +114,34 @@ export function ResumeAnalyzer() {
           <label className="mb-2 block text-sm font-medium" htmlFor="resume">
             Resume
           </label>
+          <DocumentUploadLazy
+            disabled={loading}
+            onExtracted={({ text, filename }) => {
+              setResumeText(text)
+              setUploadedFilename(filename)
+              setContextConfirmed(false)
+              setPendingContext(null)
+              setResult(null)
+              setError(null)
+            }}
+          />
+          {uploadedFilename && (
+            <p className="mb-2 text-xs text-[var(--color-muted)]">
+              Loaded from PDF: {uploadedFilename}
+            </p>
+          )}
           <textarea
             id="resume"
             value={resumeText}
             onChange={(event) => {
               setResumeText(event.target.value)
+              setUploadedFilename(null)
               setContextConfirmed(false)
               setPendingContext(null)
               setResult(null)
             }}
-            placeholder="Paste your resume text here…"
-            rows={16}
+            placeholder="Paste your resume text here, or upload a PDF above…"
+            rows={14}
             className="w-full rounded-xl border border-[var(--color-card-border)] bg-[#0d1219] px-4 py-3 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </section>

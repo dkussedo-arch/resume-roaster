@@ -1,5 +1,6 @@
-import { anthropic, CLAUDE_MODEL, TEMPERATURE_ANALYTICAL } from '@/lib/anthropic'
+import { anthropic } from '@/lib/anthropic'
 import { loadPrompt } from '@/lib/load-prompt'
+import { CLAUDE_MODEL, TEMPERATURE_ANALYTICAL } from '@/lib/models'
 import { runStructuralPreCheck } from '@/lib/structural-check'
 import type {
   AnalysisResult,
