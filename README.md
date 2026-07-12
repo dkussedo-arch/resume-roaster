@@ -73,10 +73,16 @@ Returns storage metadata. Text is extracted in the browser (PDF via pdf.js, DOCX
 POST /api/chat
 Content-Type: application/json
 
-{ "text": "Why was this bullet flagged as a level mismatch?" }
+{
+  "messages": [
+    { "role": "user", "content": "Why was this bullet flagged?" },
+    { "role": "assistant", "content": "..." },
+    { "role": "user", "content": "Can you suggest a safer rewrite?" }
+  ]
+}
 ```
 
-Returns an Anthropic SSE stream (`text/event-stream`).
+Also accepts legacy `{ "text": "..." }` for single-turn requests. Returns an Anthropic SSE stream.
 
 ## Supabase Storage setup
 
@@ -94,4 +100,5 @@ Returns an Anthropic SSE stream (`text/event-stream`).
 - [x] DOCX upload + parsing
 - [x] Protected-attribute awareness layer
 - [x] Streaming chat follow-up (`POST /api/chat`)
-- [ ] Chat UI wired into ResumeAnalyzer (next)
+- [x] Chat UI wired into home page (`ChatInterface`)
+- [ ] Optional: pass roast findings into chat context automatically

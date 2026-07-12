@@ -1,3 +1,4 @@
+import { ChatInterface } from '@/components/ChatInterface'
 import { FileUploadLazy } from '@/components/file-upload-lazy'
 import { ResumeAnalyzer } from '@/components/resume-analyzer'
 
@@ -25,6 +26,7 @@ export default function HomePage() {
 
       <FileUploadLazy />
       <ResumeAnalyzer />
+      <ChatInterface />
     </main>
   )
 }

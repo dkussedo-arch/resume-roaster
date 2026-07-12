@@ -7,17 +7,52 @@ export const maxDuration = 60
 
 const TEMPERATURE_CONVERSATIONAL = 0.7 as const
 
-export interface ChatStreamRequest {
-  text: string
+export type ChatRole = 'user' | 'assistant'
+
+export interface ChatMessage {
+  role: ChatRole
+  content: string
 }
 
-function isChatStreamRequest(body: unknown): body is ChatStreamRequest {
+export interface ChatStreamRequest {
+  /** Full conversation history. Last message must be from the user. */
+  messages?: ChatMessage[]
+  /** Legacy single-turn text. Used when messages is omitted. */
+  text?: string
+}
+
+function isChatMessage(value: unknown): value is ChatMessage {
   return (
-    typeof body === 'object' &&
-    body !== null &&
-    'text' in body &&
-    typeof (body as ChatStreamRequest).text === 'string'
+    typeof value === 'object' &&
+    value !== null &&
+    'role' in value &&
+    'content' in value &&
+    ((value as ChatMessage).role === 'user' ||
+      (value as ChatMessage).role === 'assistant') &&
+    typeof (value as ChatMessage).content === 'string' &&
+    (value as ChatMessage).content.trim().length > 0
   )
+}
+
+function resolveMessages(body: ChatStreamRequest): ChatMessage[] | null {
+  if (Array.isArray(body.messages) && body.messages.length > 0) {
+    if (!body.messages.every(isChatMessage)) {
+      return null
+    }
+    if (body.messages[body.messages.length - 1]?.role !== 'user') {
+      return null
+    }
+    return body.messages.map((message) => ({
+      role: message.role,
+      content: message.content.trim(),
+    }))
+  }
+
+  if (typeof body.text === 'string' && body.text.trim()) {
+    return [{ role: 'user', content: body.text.trim() }]
+  }
+
+  return null
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -38,14 +73,23 @@ export async function POST(request: Request): Promise<Response> {
     )
   }
 
-  if (!isChatStreamRequest(body) || !body.text.trim()) {
+  if (typeof body !== 'object' || body === null) {
     return Response.json(
-      { error: 'A non-empty text field is required.' },
+      { error: 'A non-empty text field or messages array is required.' },
       { status: 400 }
     )
   }
 
-  const text = body.text.trim()
+  const messages = resolveMessages(body as ChatStreamRequest)
+  if (!messages) {
+    return Response.json(
+      {
+        error:
+          'Send a non-empty messages array (last message must be from the user) or a text string.',
+      },
+      { status: 400 }
+    )
+  }
 
   try {
     const system = await loadPrompt('chat')
@@ -55,7 +99,7 @@ export async function POST(request: Request): Promise<Response> {
       max_tokens: 2048,
       temperature: TEMPERATURE_CONVERSATIONAL,
       system,
-      messages: [{ role: 'user', content: text }],
+      messages,
     })
 
     return new Response(stream.toReadableStream(), {
