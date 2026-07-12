@@ -83,5 +83,5 @@ Returns storage metadata. Text is extracted in the browser (PDF via pdf.js, DOCX
 - [x] Fabrication-verification pass (separate check)
 - [x] PDF upload + Supabase Storage
 - [x] DOCX upload + parsing
-- [ ] Protected-attribute awareness layer
+- [x] Protected-attribute awareness layer
 - [ ] Chat/Q&A (deferred past v1)

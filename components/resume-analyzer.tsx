@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Flame,
   Loader2,
+  Shield,
   Sparkles,
 } from 'lucide-react'
 
@@ -262,6 +263,40 @@ export function ResumeAnalyzer() {
             </section>
           )}
 
+          {result.protectedAttributeSignals &&
+            result.protectedAttributeSignals.length > 0 && (
+              <section className="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5">
+                <div className="mb-3 flex items-center gap-2 text-sky-200">
+                  <Shield className="h-4 w-4" />
+                  <h2 className="text-lg font-medium">
+                    Protected content — out of scope for critique
+                  </h2>
+                </div>
+                <p className="mb-3 text-sm text-[var(--color-muted)]">
+                  We detected signals that we will not suggest removing or
+                  reframing. This is informational only.
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {result.protectedAttributeSignals.map((signal) => (
+                    <li
+                      key={`${signal.category}-${signal.excerpt}`}
+                      className="rounded-xl border border-sky-500/20 bg-[#0d1219] px-4 py-3"
+                    >
+                      <p className="text-xs font-medium uppercase tracking-wide text-sky-200/80">
+                        {signal.category.replace(/_/g, ' ')}
+                      </p>
+                      <p className="mt-1 text-[var(--color-muted)]">
+                        “{signal.excerpt}”
+                      </p>
+                      <p className="mt-1 text-xs text-sky-100/70">
+                        {signal.explanation}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
           {result.findings.length > 0 && (
             <section>
               <h2 className="mb-4 text-lg font-medium">Findings & rewrites</h2>
@@ -287,6 +322,12 @@ export function ResumeAnalyzer() {
                         <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-amber-200">
                           <AlertTriangle className="h-3 w-3" />
                           Verify rewrite
+                        </span>
+                      )}
+                      {finding.protectedAttributeFlag && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-sky-200">
+                          <Shield className="h-3 w-3" />
+                          Protected
                         </span>
                       )}
                     </div>
@@ -315,6 +356,13 @@ export function ResumeAnalyzer() {
                           )}
                       </div>
                     )}
+                    {finding.protectedAttributeFlag &&
+                      finding.protectedAttributeNotes &&
+                      finding.protectedAttributeNotes.length > 0 && (
+                        <div className="mt-3 rounded-xl border border-sky-500/30 bg-sky-500/5 px-4 py-3 text-xs text-sky-100/90">
+                          {finding.protectedAttributeNotes.join(' ')}
+                        </div>
+                      )}
                     <p className="mt-3 text-xs text-[var(--color-muted)]">
                       {finding.whyItMatters}
                     </p>

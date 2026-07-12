@@ -2,6 +2,7 @@ import { anthropic } from '@/lib/anthropic'
 import { applyFabricationVerification } from '@/lib/fabrication-check'
 import { loadPrompt } from '@/lib/load-prompt'
 import { CLAUDE_MODEL, TEMPERATURE_ANALYTICAL } from '@/lib/models'
+import { applyProtectedAttributeAwareness } from '@/lib/protected-attributes'
 import { runStructuralPreCheck } from '@/lib/structural-check'
 import type {
   AnalysisResult,
@@ -167,6 +168,13 @@ export async function POST(request: Request): Promise<Response> {
     const parsed = JSON.parse(textBlock.text) as Record<string, unknown>
     const result = normalizeResult(parsed, structuralRisk)
     result.findings = applyFabricationVerification(result.findings, resumeText)
+
+    const protectedLayer = applyProtectedAttributeAwareness(
+      result.findings,
+      resumeText
+    )
+    result.findings = protectedLayer.findings
+    result.protectedAttributeSignals = protectedLayer.protectedAttributeSignals
 
     return Response.json(result)
   } catch (error) {

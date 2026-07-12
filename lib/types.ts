@@ -28,6 +28,21 @@ export interface Finding {
   /** Claims in the rewrite that could not be traced to the source resume. */
   fabricationNotes?: string[]
   protectedAttributeFlag: boolean
+  /** Notes when a finding was limited by protected-attribute policy. */
+  protectedAttributeNotes?: string[]
+}
+
+export type ProtectedAttributeCategory =
+  | 'age'
+  | 'gender_or_ethnicity'
+  | 'disability'
+  | 'family_status'
+  | 'national_origin_or_visa'
+
+export interface ProtectedAttributeSignal {
+  category: ProtectedAttributeCategory
+  excerpt: string
+  explanation: string
 }
 
 export interface JdDelta {
@@ -41,6 +56,7 @@ export interface AnalysisResult {
   structuralRisk: StructuralRisk[]
   findings: Finding[]
   jdDelta: JdDelta[]
+  protectedAttributeSignals?: ProtectedAttributeSignal[]
 }
 
 export interface AnalyzeRequest {
