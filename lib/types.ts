@@ -64,3 +64,24 @@ export interface AnalyzeRequest {
   jobDescription?: string
   confirmedContext?: InferredContext
 }
+
+export type EvaluationStatus =
+  | 'SUPPORTED'
+  | 'IMPLIED'
+  | 'NOT_FOUND'
+  | 'CONTRADICTED'
+
+export interface EvaluatedClaim {
+  id: string
+  claim: string
+  status: EvaluationStatus
+  evidence?: string
+  rationale?: string
+  sources?: string[]
+}
+
+export interface EvaluationResult {
+  title?: string
+  evaluatedAt?: string
+  claims: EvaluatedClaim[]
+}
