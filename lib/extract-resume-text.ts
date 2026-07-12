@@ -1,6 +1,5 @@
 'use client'
 
-import { extractTextFromDocx } from '@/lib/extract-docx-text'
 import { extractTextFromPdf } from '@/lib/extract-pdf-text'
 
 export type ResumeFileKind = 'pdf' | 'docx' | 'txt'
@@ -56,6 +55,7 @@ export async function extractResumeText(
 
   if (kind === 'docx') {
     onProgress?.(20)
+    const { extractTextFromDocx } = await import('@/lib/extract-docx-text')
     const text = await extractTextFromDocx(file)
     onProgress?.(100)
     return { text, kind }

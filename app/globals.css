@@ -40,6 +40,11 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-screen bg-background text-foreground;
+    background-image: radial-gradient(
+      ellipse 80% 50% at 50% -20%,
+      hsl(24 95% 53% / 0.08) 0%,
+      transparent 60%
+    );
   }
 }

@@ -1,11 +1,11 @@
 'use client'
 
-import mammoth from 'mammoth'
-
 /**
  * Extract plain text from a DOCX file in the browser.
+ * Mammoth is loaded on demand so it stays off the initial page bundle.
  */
 export async function extractTextFromDocx(file: File): Promise<string> {
+  const mammoth = await import('mammoth')
   const arrayBuffer = await file.arrayBuffer()
   const result = await mammoth.extractRawText({ arrayBuffer })
   const text = result.value.replace(/\n{3,}/g, '\n\n').trim()

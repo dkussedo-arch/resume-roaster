@@ -1,10 +1,9 @@
 import { ChatInterface } from '@/components/ChatInterface'
-import { FileUploadLazy } from '@/components/file-upload-lazy'
 import { ResumeAnalyzer } from '@/components/resume-analyzer'
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="min-h-screen">
       <header className="border-b border-[var(--color-card-border)] bg-[#0b0f14]/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-2">
@@ -24,7 +23,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      <FileUploadLazy />
       <ResumeAnalyzer />
       <ChatInterface />
     </main>
