@@ -127,7 +127,7 @@ export function ResumeAnalyzer() {
           />
           {uploadedFilename && (
             <p className="mb-2 text-xs text-[var(--color-muted)]">
-              Loaded from PDF: {uploadedFilename}
+              Loaded from file: {uploadedFilename}
             </p>
           )}
           <textarea
@@ -140,7 +140,7 @@ export function ResumeAnalyzer() {
               setPendingContext(null)
               setResult(null)
             }}
-            placeholder="Paste your resume text here, or upload a PDF above…"
+            placeholder="Paste your resume text here, or upload a PDF/DOCX above…"
             rows={14}
             className="w-full rounded-xl border border-[var(--color-card-border)] bg-[#0d1219] px-4 py-3 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />

@@ -5,7 +5,7 @@ An AI-powered resume assistant that combines ATS structural checks with evidence
 ## What it does
 
 - **Deterministic ATS pre-check** — flags table/column/image patterns before AI analysis
-- **PDF upload** — extract resume text in-browser and store the file in Supabase Storage
+- **PDF / DOCX upload** — extract resume text in-browser and store the file in Supabase Storage
 - **Context confirmation** — confirms inferred industry/seniority before generating rewrites
 - **Structured findings** — diagnoses level mismatch, jargon translation, and JD tailoring gaps
 - **Concrete rewrites** — anchored to your actual bullets, with fabrication flags when needed
@@ -64,10 +64,10 @@ Content-Type: application/json
 POST /api/upload
 Content-Type: multipart/form-data
 
-file: <resume.pdf>
+file: <resume.pdf|resume.docx>
 ```
 
-Returns storage metadata. PDF text is extracted in the browser before upload.
+Returns storage metadata. Text is extracted in the browser (PDF via pdf.js, DOCX via mammoth) before upload.
 
 ## Supabase Storage setup
 
@@ -80,8 +80,8 @@ Returns storage metadata. PDF text is extracted in the browser before upload.
 - [x] Scaffold + deterministic structural pre-check
 - [x] Context-confirmation checkpoint
 - [x] Single structured-output analysis call
-- [x] PDF upload + Supabase Storage
 - [x] Fabrication-verification pass (separate check)
+- [x] PDF upload + Supabase Storage
+- [x] DOCX upload + parsing
 - [ ] Protected-attribute awareness layer
-- [ ] DOCX upload + parsing
 - [ ] Chat/Q&A (deferred past v1)

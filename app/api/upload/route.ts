@@ -9,6 +9,19 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+function detectKind(file: File): 'pdf' | 'docx' | null {
+  const name = file.name.toLowerCase()
+  if (file.type === 'application/pdf' || name.endsWith('.pdf')) {
+    return 'pdf'
+  }
+  if (file.type === DOCX_MIME || name.endsWith('.docx')) {
+    return 'docx'
+  }
+  return null
+}
 
 export async function POST(request: Request): Promise<Response> {
   let formData: FormData
@@ -20,11 +33,15 @@ export async function POST(request: Request): Promise<Response> {
 
   const file = formData.get('file')
   if (!(file instanceof File)) {
-    return Response.json({ error: 'A PDF file is required.' }, { status: 400 })
+    return Response.json({ error: 'A resume file is required.' }, { status: 400 })
   }
 
-  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-    return Response.json({ error: 'Only PDF files are supported.' }, { status: 400 })
+  const kind = detectKind(file)
+  if (!kind) {
+    return Response.json(
+      { error: 'Only PDF and DOCX files are supported.' },
+      { status: 400 }
+    )
   }
 
   if (file.size > MAX_FILE_SIZE_BYTES) {
@@ -35,28 +52,32 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const fileSizeKb = Math.round(file.size / 1024)
+  const contentType = kind === 'pdf' ? 'application/pdf' : DOCX_MIME
 
   if (!isSupabaseConfigured()) {
     return Response.json({
       filename: file.name,
       fileSizeKb,
+      kind,
       storagePath: null,
       storageUploaded: false,
       storageSkipped: true,
       message:
-        'Supabase is not configured — PDF was not stored. Text extraction still works on the client.',
+        'Supabase is not configured — file was not stored. Text extraction still works on the client.',
     })
   }
 
   try {
     const supabase = createServiceClient()
     const bucket = getStorageBucket()
-    const safeName = sanitizeFilename(file.name || 'resume.pdf')
+    const safeName = sanitizeFilename(
+      file.name || (kind === 'pdf' ? 'resume.pdf' : 'resume.docx')
+    )
     const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${safeName}`
     const buffer = Buffer.from(await file.arrayBuffer())
 
     const { error } = await supabase.storage.from(bucket).upload(path, buffer, {
-      contentType: 'application/pdf',
+      contentType,
       upsert: false,
     })
 
@@ -67,6 +88,7 @@ export async function POST(request: Request): Promise<Response> {
           error: `Storage upload failed: ${error.message}`,
           filename: file.name,
           fileSizeKb,
+          kind,
           storageUploaded: false,
         },
         { status: 502 }
@@ -76,6 +98,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({
       filename: file.name,
       fileSizeKb,
+      kind,
       storagePath: path,
       storageUploaded: true,
       storageSkipped: false,

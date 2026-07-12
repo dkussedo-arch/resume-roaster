@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { CheckCircle2, FileUp, Loader2, Upload, XCircle } from 'lucide-react'
 
-import { extractTextFromPdf } from '@/lib/extract-pdf-text'
+import { extractResumeText, getResumeFileKind } from '@/lib/extract-resume-text'
 import { cn } from '@/lib/utils'
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
@@ -35,8 +35,8 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
     setError(null)
     setStatus(null)
 
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      setError('Only PDF files are supported.')
+    if (!getResumeFileKind(file)) {
+      setError('Only PDF and DOCX files are supported.')
       return
     }
 
@@ -48,7 +48,7 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
     try {
       setPhase('extracting')
       setProgress(5)
-      const text = await extractTextFromPdf(file, setProgress)
+      const { text, kind } = await extractResumeText(file, setProgress)
 
       setPhase('uploading')
       setProgress(90)
@@ -70,7 +70,6 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
       }
 
       if (!response.ok) {
-        // Extraction succeeded — still hand text to the analyzer.
         onExtracted({ text, filename: file.name, storagePath: null })
         throw new Error(
           payload.error ??
@@ -85,17 +84,20 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
       })
 
       setProgress(100)
+      const kindLabel = kind.toUpperCase()
       if (payload.storageUploaded) {
-        setStatus(`Uploaded ${file.name} to Supabase Storage and extracted text.`)
+        setStatus(
+          `Uploaded ${file.name} (${kindLabel}) to Supabase Storage and extracted text.`
+        )
       } else if (payload.storageSkipped) {
         setStatus(
-          `Extracted text from ${file.name}. Configure Supabase to enable Storage uploads.`
+          `Extracted text from ${file.name} (${kindLabel}). Configure Supabase to enable Storage uploads.`
         )
       } else {
-        setStatus(`Extracted text from ${file.name}.`)
+        setStatus(`Extracted text from ${file.name} (${kindLabel}).`)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process PDF.')
+      setError(err instanceof Error ? err.message : 'Failed to process file.')
     } finally {
       setPhase('idle')
       setProgress(0)
@@ -163,13 +165,15 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
             ? `Extracting text… ${progress}%`
             : phase === 'uploading'
               ? 'Uploading to Supabase Storage…'
-              : 'Drop a PDF resume, or click to browse'}
+              : 'Drop a PDF or DOCX resume, or click to browse'}
         </p>
-        <p className="mt-1 text-xs text-[var(--color-muted)]">PDF · up to 10 MB</p>
+        <p className="mt-1 text-xs text-[var(--color-muted)]">
+          PDF or DOCX · up to 10 MB
+        </p>
         <input
           ref={inputRef}
           type="file"
-          accept="application/pdf,.pdf"
+          accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx"
           className="hidden"
           disabled={busy}
           onChange={(event) => {
@@ -186,7 +190,7 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
         className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--color-card-border)] px-3 text-xs font-medium text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-foreground)] disabled:opacity-50"
       >
         <FileUp className="h-3.5 w-3.5" />
-        Choose PDF
+        Choose PDF or DOCX
       </button>
 
       {status && (
