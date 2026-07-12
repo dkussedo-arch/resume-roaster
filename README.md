@@ -69,6 +69,15 @@ file: <resume.pdf|resume.docx>
 
 Returns storage metadata. Text is extracted in the browser (PDF via pdf.js, DOCX via mammoth) before upload.
 
+```
+POST /api/chat
+Content-Type: application/json
+
+{ "text": "Why was this bullet flagged as a level mismatch?" }
+```
+
+Returns an Anthropic SSE stream (`text/event-stream`).
+
 ## Supabase Storage setup
 
 1. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
@@ -84,4 +93,5 @@ Returns storage metadata. Text is extracted in the browser (PDF via pdf.js, DOCX
 - [x] PDF upload + Supabase Storage
 - [x] DOCX upload + parsing
 - [x] Protected-attribute awareness layer
-- [ ] Chat/Q&A (deferred past v1)
+- [x] Streaming chat follow-up (`POST /api/chat`)
+- [ ] Chat UI wired into ResumeAnalyzer (next)
