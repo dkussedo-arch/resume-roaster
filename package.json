@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:fabrication": "npx --yes tsx scripts/test-fabrication-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",

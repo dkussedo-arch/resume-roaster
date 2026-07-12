@@ -81,7 +81,7 @@ Returns storage metadata. PDF text is extracted in the browser before upload.
 - [x] Context-confirmation checkpoint
 - [x] Single structured-output analysis call
 - [x] PDF upload + Supabase Storage
-- [ ] Fabrication-verification pass (separate check)
+- [x] Fabrication-verification pass (separate check)
 - [ ] Protected-attribute awareness layer
 - [ ] DOCX upload + parsing
 - [ ] Chat/Q&A (deferred past v1)

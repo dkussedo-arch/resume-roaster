@@ -25,6 +25,8 @@ export interface Finding {
   whyItMatters: string
   confidence: ConfidenceLevel
   fabricationCheck: FabricationCheck
+  /** Claims in the rewrite that could not be traced to the source resume. */
+  fabricationNotes?: string[]
   protectedAttributeFlag: boolean
 }
 

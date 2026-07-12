@@ -300,6 +300,21 @@ export function ResumeAnalyzer() {
                       </p>
                       <p className="text-sm leading-relaxed">{finding.rewrite}</p>
                     </div>
+                    {finding.fabricationCheck === 'flagged_for_review' && (
+                      <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-100/90">
+                        <p className="font-medium text-amber-200">
+                          This rewrite may go beyond what your resume currently
+                          states — verify before using.
+                        </p>
+                        {finding.fabricationNotes &&
+                          finding.fabricationNotes.length > 0 && (
+                            <p className="mt-2 text-amber-100/80">
+                              Unsupported claims:{' '}
+                              {finding.fabricationNotes.join(', ')}
+                            </p>
+                          )}
+                      </div>
+                    )}
                     <p className="mt-3 text-xs text-[var(--color-muted)]">
                       {finding.whyItMatters}
                     </p>
