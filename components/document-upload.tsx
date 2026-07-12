@@ -36,7 +36,7 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
     setStatus(null)
 
     if (!getResumeFileKind(file)) {
-      setError('Only PDF and DOCX files are supported.')
+      setError('Only PDF, DOCX, and TXT files are supported.')
       return
     }
 
@@ -165,15 +165,15 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
             ? `Extracting text… ${progress}%`
             : phase === 'uploading'
               ? 'Uploading to Supabase Storage…'
-              : 'Drop a PDF or DOCX resume, or click to browse'}
+              : 'Drop a PDF, DOCX, or TXT resume, or click to browse'}
         </p>
         <p className="mt-1 text-xs text-[var(--color-muted)]">
-          PDF or DOCX · up to 10 MB
+          PDF, DOCX, or TXT · up to 10 MB
         </p>
         <input
           ref={inputRef}
           type="file"
-          accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx"
+          accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx,text/plain,.txt"
           className="hidden"
           disabled={busy}
           onChange={(event) => {
@@ -190,7 +190,7 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
         className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--color-card-border)] px-3 text-xs font-medium text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-foreground)] disabled:opacity-50"
       >
         <FileUp className="h-3.5 w-3.5" />
-        Choose PDF or DOCX
+        Choose PDF, DOCX, or TXT
       </button>
 
       {status && (

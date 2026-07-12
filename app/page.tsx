@@ -1,3 +1,4 @@
+import { FileUploadLazy } from '@/components/file-upload-lazy'
 import { ResumeAnalyzer } from '@/components/resume-analyzer'
 
 export default function HomePage() {
@@ -22,6 +23,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      <FileUploadLazy />
       <ResumeAnalyzer />
     </main>
   )

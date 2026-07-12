@@ -12,13 +12,16 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const DOCX_MIME =
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
-function detectKind(file: File): 'pdf' | 'docx' | null {
+function detectKind(file: File): 'pdf' | 'docx' | 'txt' | null {
   const name = file.name.toLowerCase()
   if (file.type === 'application/pdf' || name.endsWith('.pdf')) {
     return 'pdf'
   }
   if (file.type === DOCX_MIME || name.endsWith('.docx')) {
     return 'docx'
+  }
+  if (file.type === 'text/plain' || name.endsWith('.txt')) {
+    return 'txt'
   }
   return null
 }
@@ -39,7 +42,7 @@ export async function POST(request: Request): Promise<Response> {
   const kind = detectKind(file)
   if (!kind) {
     return Response.json(
-      { error: 'Only PDF and DOCX files are supported.' },
+      { error: 'Only PDF, DOCX, and TXT files are supported.' },
       { status: 400 }
     )
   }
@@ -52,7 +55,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const fileSizeKb = Math.round(file.size / 1024)
-  const contentType = kind === 'pdf' ? 'application/pdf' : DOCX_MIME
+  const contentType =
+    kind === 'pdf'
+      ? 'application/pdf'
+      : kind === 'docx'
+        ? DOCX_MIME
+        : 'text/plain'
 
   if (!isSupabaseConfigured()) {
     return Response.json({
@@ -71,7 +79,12 @@ export async function POST(request: Request): Promise<Response> {
     const supabase = createServiceClient()
     const bucket = getStorageBucket()
     const safeName = sanitizeFilename(
-      file.name || (kind === 'pdf' ? 'resume.pdf' : 'resume.docx')
+      file.name ||
+        (kind === 'pdf'
+          ? 'resume.pdf'
+          : kind === 'docx'
+            ? 'resume.docx'
+            : 'resume.txt')
     )
     const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${safeName}`
     const buffer = Buffer.from(await file.arrayBuffer())
