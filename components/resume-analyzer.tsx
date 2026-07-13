@@ -11,6 +11,11 @@ import {
 } from 'lucide-react'
 
 import { DocumentUploadLazy } from '@/components/document-upload-lazy'
+import { OutputRatingButtons } from '@/components/output-rating-buttons'
+import {
+  trackAiGenerationCompleted,
+  trackAiGenerationStarted,
+} from '@/lib/analytics'
 import type { AnalysisResult, InferredContext } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -40,6 +45,8 @@ export function ResumeAnalyzer() {
 
     setLoading(true)
     setError(null)
+    const startedAt = performance.now()
+    trackAiGenerationStarted('resume_analysis')
 
     try {
       const response = await fetch('/api/analyze', {
@@ -60,6 +67,12 @@ export function ResumeAnalyzer() {
         throw new Error(payload.error ?? `Request failed (${response.status})`)
       }
 
+      trackAiGenerationCompleted(
+        'resume_analysis',
+        performance.now() - startedAt,
+        true
+      )
+
       if (!confirmedContext && !contextConfirmed) {
         setPendingContext(payload.inferredContext)
         setResult(null)
@@ -69,6 +82,11 @@ export function ResumeAnalyzer() {
       setResult(payload)
       setPendingContext(null)
     } catch (err) {
+      trackAiGenerationCompleted(
+        'resume_analysis',
+        performance.now() - startedAt,
+        false
+      )
       setError(err instanceof Error ? err.message : 'Analysis failed.')
     } finally {
       setLoading(false)
@@ -242,6 +260,7 @@ export function ResumeAnalyzer() {
 
       {result && (
         <div className="mt-10 space-y-8">
+          <OutputRatingButtons />
           {result.structuralRisk.length > 0 && (
             <section>
               <h2 className="mb-4 text-lg font-medium">ATS structural risks</h2>

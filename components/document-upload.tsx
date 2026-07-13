@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { CheckCircle2, FileUp, Loader2, Upload, XCircle } from 'lucide-react'
 
+import { trackFileUploaded } from '@/lib/analytics'
 import { extractResumeText, getResumeFileKind } from '@/lib/extract-resume-text'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +50,7 @@ export function DocumentUpload({ disabled, onExtracted }: DocumentUploadProps) {
       setPhase('extracting')
       setProgress(5)
       const { text, kind } = await extractResumeText(file, setProgress)
+      trackFileUploaded(file.size / 1024, kind)
 
       setPhase('uploading')
       setProgress(90)

@@ -11,6 +11,12 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { OutputRatingButtons } from '@/components/output-rating-buttons'
+import {
+  trackAiGenerationCompleted,
+  trackAiGenerationStarted,
+  trackFileUploaded,
+} from '@/lib/analytics'
 import {
   contentTypeForKind,
   extractResumeText,
@@ -107,6 +113,7 @@ export function FileUpload() {
       const { text } = await extractResumeText(file, (pct) => {
         setProgress(Math.min(40, Math.round(pct * 0.4)))
       })
+      trackFileUploaded(file.size / 1024, kind)
 
       setFilename(file.name)
       setProgress(45)
@@ -125,29 +132,46 @@ export function FileUpload() {
       setPhase('analyzing')
       setProgress(70)
 
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resumeText: text,
-          confirmedContext: {
-            targetIndustry: 'Unknown',
-            targetSeniority: 'Unknown',
-            confirmedByUser: true,
-          },
-        }),
-      })
+      const startedAt = performance.now()
+      trackAiGenerationStarted('resume_analysis')
 
-      const payload = (await response.json()) as AnalysisResult & {
-        error?: string
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            resumeText: text,
+            confirmedContext: {
+              targetIndustry: 'Unknown',
+              targetSeniority: 'Unknown',
+              confirmedByUser: true,
+            },
+          }),
+        })
+
+        const payload = (await response.json()) as AnalysisResult & {
+          error?: string
+        }
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? `Analysis failed (${response.status})`)
+        }
+
+        trackAiGenerationCompleted(
+          'resume_analysis',
+          performance.now() - startedAt,
+          true
+        )
+        setResult(payload)
+        setProgress(100)
+      } catch (analysisError) {
+        trackAiGenerationCompleted(
+          'resume_analysis',
+          performance.now() - startedAt,
+          false
+        )
+        throw analysisError
       }
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? `Analysis failed (${response.status})`)
-      }
-
-      setResult(payload)
-      setProgress(100)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process file.')
       setFilename(null)
@@ -315,9 +339,12 @@ export function FileUpload() {
 
         {result && (
           <div className="mt-6 space-y-4 rounded-xl border border-[var(--color-card-border)] bg-[#0d1219] p-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-[var(--color-accent)]">
-              <CheckCircle2 className="h-4 w-4" />
-              Analysis complete
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-[var(--color-accent)]">
+                <CheckCircle2 className="h-4 w-4" />
+                Analysis complete
+              </div>
+              <OutputRatingButtons />
             </div>
             <p className="text-sm text-[var(--color-muted)]">
               Inferred target:{' '}
