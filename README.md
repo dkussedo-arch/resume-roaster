@@ -84,6 +84,17 @@ Content-Type: application/json
 
 Also accepts legacy `{ "text": "..." }` for single-turn requests. Returns an Anthropic SSE stream.
 
+## Environment (deploy)
+
+Set on your host (Vercel, etc.):
+
+- `ANTHROPIC_API_KEY` (required)
+- `RR_API_SECRET` (required for cross-origin API access in production)
+- `HELICONE_API_KEY` (optional LLM observability)
+- Supabase vars as in `.env.example` (optional until you enable Storage)
+
+Same-origin browser calls from this app do not need `RR_API_SECRET`. Cross-origin clients must send `Authorization: Bearer <RR_API_SECRET>` or `x-api-key`.
+
 ## Supabase Storage setup
 
 1. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`

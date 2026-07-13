@@ -13,15 +13,15 @@ export function getStorageBucket(): string {
   return process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? DEFAULT_BUCKET
 }
 
-/** Server-side client — prefers service role for Storage writes. */
+/** Server-side client — requires service role for Storage writes. */
 export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!url || !key) {
-    throw new Error('Supabase is not configured.')
+    throw new Error(
+      'Supabase storage requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+    )
   }
 
   return createClient(url, key, {

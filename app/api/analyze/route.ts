@@ -1,4 +1,10 @@
 import { anthropic } from '@/lib/anthropic'
+import {
+  guardApiRequest,
+  internalErrorResponse,
+  MAX_TEXT_CHARS,
+  textTooLargeResponse,
+} from '@/lib/api-guard'
 import { applyFabricationVerification } from '@/lib/fabrication-check'
 import { loadPrompt } from '@/lib/load-prompt'
 import { CLAUDE_MODEL, TEMPERATURE_ANALYTICAL } from '@/lib/models'
@@ -106,6 +112,11 @@ function normalizeResult(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = guardApiRequest(request, { ai: true })
+  if (blocked) {
+    return blocked
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json(
       { error: 'AI service is not configured. Set ANTHROPIC_API_KEY.' },
@@ -129,6 +140,14 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!resumeText) {
     return Response.json({ error: 'Resume text is required.' }, { status: 400 })
+  }
+
+  if (resumeText.length > MAX_TEXT_CHARS) {
+    return textTooLargeResponse('Resume text', resumeText.length)
+  }
+
+  if (jobDescription.length > MAX_TEXT_CHARS) {
+    return textTooLargeResponse('Job description', jobDescription.length)
   }
 
   const structuralRisk = runStructuralPreCheck(resumeText)
@@ -178,11 +197,10 @@ export async function POST(request: Request): Promise<Response> {
 
     return Response.json(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Analysis failed.'
-    console.error('[Resume Roaster] Analyze error:', message)
-    return Response.json(
-      { error: 'Failed to analyze resume. Please try again.' },
-      { status: 500 }
+    return internalErrorResponse(
+      'Analyze error',
+      error,
+      'Failed to analyze resume. Please try again.'
     )
   }
 }

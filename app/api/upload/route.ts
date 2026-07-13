@@ -1,4 +1,8 @@
 import {
+  guardApiRequest,
+  internalErrorResponse,
+} from '@/lib/api-guard'
+import {
   createServiceClient,
   getStorageBucket,
   isSupabaseConfigured,
@@ -27,6 +31,11 @@ function detectKind(file: File): 'pdf' | 'docx' | 'txt' | null {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = guardApiRequest(request)
+  if (blocked) {
+    return blocked
+  }
+
   let formData: FormData
   try {
     formData = await request.formData()
@@ -62,7 +71,7 @@ export async function POST(request: Request): Promise<Response> {
         ? DOCX_MIME
         : 'text/plain'
 
-  if (!isSupabaseConfigured()) {
+  if (!isSupabaseConfigured() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return Response.json({
       filename: file.name,
       fileSizeKb,
@@ -71,7 +80,7 @@ export async function POST(request: Request): Promise<Response> {
       storageUploaded: false,
       storageSkipped: true,
       message:
-        'Supabase is not configured — file was not stored. Text extraction still works on the client.',
+        'Supabase storage is not fully configured (needs URL + SUPABASE_SERVICE_ROLE_KEY). Text extraction still works on the client.',
     })
   }
 
@@ -98,7 +107,7 @@ export async function POST(request: Request): Promise<Response> {
       console.error('[Resume Roaster] Storage upload failed:', error.message)
       return Response.json(
         {
-          error: `Storage upload failed: ${error.message}`,
+          error: 'Storage upload failed. Please try again.',
           filename: file.name,
           fileSizeKb,
           kind,
@@ -118,8 +127,10 @@ export async function POST(request: Request): Promise<Response> {
       bucket,
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Upload failed.'
-    console.error('[Resume Roaster] Upload error:', message)
-    return Response.json({ error: message }, { status: 500 })
+    return internalErrorResponse(
+      'Upload error',
+      error,
+      'Failed to upload resume. Please try again.'
+    )
   }
 }
