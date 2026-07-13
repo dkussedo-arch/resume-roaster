@@ -1,0 +1,11 @@
+- role: system
+  content: file://../analyze.txt
+- role: user
+  content: |
+    ## Resume
+    {{resume}}
+
+    {% if jobDescription %}
+    ## Target job description
+    {{jobDescription}}
+    {% endif %}
