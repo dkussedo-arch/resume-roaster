@@ -1,0 +1,49 @@
+# CI safety net for Resume Roaster.
+# If this workflow fails, do not deploy — wire it as a required GitHub check
+# and/or deploy from Actions only after CI passes (Vercel Git auto-deploy
+# alone does not wait on this workflow unless you configure that).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build must not require live secrets; keys stay empty in CI build.
+          ANTHROPIC_API_KEY: ''
+
+      - name: Deterministic AI safety tests
+        run: |
+          npm run test:fabrication
+          npm run test:protected
+
+      - name: Promptfoo eval suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY secret is not set — failing CI (required for Promptfoo eval)."
+            exit 1
+          fi
+          npx --yes promptfoo@0.120.27 eval --config prompts/evaluation/promptfooconfig.yaml

@@ -1,4 +1,10 @@
 import { anthropic } from '@/lib/anthropic'
+import {
+  guardApiRequest,
+  internalErrorResponse,
+  MAX_TEXT_CHARS,
+  textTooLargeResponse,
+} from '@/lib/api-guard'
 import { loadPrompt } from '@/lib/load-prompt'
 import { CLAUDE_MODEL } from '@/lib/models'
 
@@ -56,6 +62,11 @@ function resolveMessages(body: ChatStreamRequest): ChatMessage[] | null {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const blocked = guardApiRequest(request, { ai: true })
+  if (blocked) {
+    return blocked
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json(
       { error: 'AI service is not configured. Set ANTHROPIC_API_KEY.' },
@@ -91,6 +102,11 @@ export async function POST(request: Request): Promise<Response> {
     )
   }
 
+  const totalChars = messages.reduce((sum, message) => sum + message.content.length, 0)
+  if (totalChars > MAX_TEXT_CHARS) {
+    return textTooLargeResponse('Chat history', totalChars)
+  }
+
   try {
     const system = await loadPrompt('chat')
 
@@ -110,12 +126,10 @@ export async function POST(request: Request): Promise<Response> {
       },
     })
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Unknown Anthropic API error'
-    console.error('[Resume Roaster] Chat stream error:', message)
-    return Response.json(
-      { error: `Claude API request failed: ${message}` },
-      { status: 500 }
+    return internalErrorResponse(
+      'Chat stream error',
+      error,
+      'Failed to generate chat response. Please try again.'
     )
   }
 }

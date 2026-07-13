@@ -1,0 +1,54 @@
+# Resume Roaster — Promptfoo deploy gate
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: Resume Roaster analyze prompt smoke eval (CI safety net)
+
+prompts:
+  - file://analyze-prompt.yaml
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-6
+    config:
+      temperature: 0.2
+      max_tokens: 2048
+
+defaultTest:
+  assert:
+    - type: is-json
+    - type: javascript
+      value: |
+        const parsed = JSON.parse(output);
+        const ok =
+          parsed &&
+          typeof parsed === 'object' &&
+          parsed.inferred_context &&
+          Array.isArray(parsed.findings);
+        return {
+          pass: Boolean(ok),
+          score: ok ? 1 : 0,
+          reason: ok ? 'Valid analyze JSON shape' : 'Missing inferred_context or findings',
+        };
+
+tests:
+  - description: rr-tc-001 — typical resume produces structured findings JSON
+    vars:
+      resume: |
+        Jane Doe
+        Senior Product Manager
+
+        Experience
+        - Led a cross-functional team of 8 to ship SSO onboarding, reducing time-to-value by 40%.
+        - Owned roadmap for enterprise admin features used by 120+ customers.
+      jobDescription: |
+        Looking for a Senior PM with SaaS experience, stakeholder management, and metrics-driven delivery.
+    assert:
+      - type: contains-any
+        value: ["findings", "inferred_context"]
+
+  - description: rr-tc-002 — empty-ish resume still returns valid JSON schema
+    vars:
+      resume: |
+        Candidate Name
+        Looking for opportunities.
+      jobDescription: ""
+    assert:
+      - type: is-json

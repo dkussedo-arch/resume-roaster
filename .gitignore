@@ -32,3 +32,8 @@ Thumbs.db
 *.key
 *.pem
 secrets/
+
+# Promptfoo
+.promptfoo/
+promptfoo-output/
+

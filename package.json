@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
     "test:fabrication": "npx --yes tsx scripts/test-fabrication-check.ts",
-    "test:protected": "npx --yes tsx scripts/test-protected-attributes.ts"
+    "test:protected": "npx --yes tsx scripts/test-protected-attributes.ts",
+    "eval": "npx --yes promptfoo@0.120.27 eval --config prompts/evaluation/promptfooconfig.yaml",
+    "eval:gate": "npm run eval"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
