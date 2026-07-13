@@ -74,7 +74,12 @@ export default function AppPage() {
 
           {/* Right Panel - Feedback */}
           <div className="bg-white overflow-hidden flex flex-col">
-            <FeedbackPanel feedback={feedback} isLoading={isLoading} />
+            <FeedbackPanel
+              feedback={feedback}
+              isLoading={isLoading}
+              resumeText={resumeText}
+              jobDescription={jobDescription}
+            />
           </div>
         </div>
       </div>
