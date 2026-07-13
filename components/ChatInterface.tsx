@@ -4,7 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Loader2, MessageCircle, RotateCcw, Send } from 'lucide-react'
 
 import { readAnthropicStream } from '@/lib/parse-anthropic-stream'
+import {
+  trackAiGenerationCompleted,
+  trackAiGenerationStarted,
+} from '@/lib/analytics'
 import { cn } from '@/lib/utils'
+import { OutputRatingButtons } from '@/components/output-rating-buttons'
 
 export type ChatRole = 'user' | 'assistant'
 
@@ -44,6 +49,9 @@ export function ChatInterface() {
 
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
+    const startedAt = performance.now()
+    trackAiGenerationStarted('chat')
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -67,7 +75,10 @@ export function ChatInterface() {
           return updated
         })
       })
+
+      trackAiGenerationCompleted('chat', performance.now() - startedAt, true)
     } catch (err) {
+      trackAiGenerationCompleted('chat', performance.now() - startedAt, false)
       const message =
         err instanceof Error ? err.message : 'Failed to reach the AI service.'
       setError(message)
@@ -192,6 +203,12 @@ export function ChatInterface() {
               )}
             </div>
           )}
+
+          {!isGenerating &&
+            !error &&
+            messages.some((message) => message.role === 'assistant') && (
+              <OutputRatingButtons />
+            )}
 
           <div ref={scrollAnchorRef} />
         </div>

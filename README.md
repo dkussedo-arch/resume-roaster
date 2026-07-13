@@ -23,6 +23,7 @@ npx pnpm install
 # 3. Configure
 cp .env.example .env.local
 # Add your ANTHROPIC_API_KEY
+# Optional: NEXT_PUBLIC_POSTHOG_KEY (+ NEXT_PUBLIC_POSTHOG_HOST) for analytics
 
 # 4. Run
 npx pnpm dev

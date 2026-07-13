@@ -1,5 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
+
+import { PostHogPageView } from '@/components/posthog-page-view'
+import { PostHogProvider } from '@/components/posthog-provider'
 
 import './globals.css'
 
@@ -18,7 +22,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <PostHogProvider>
+          <Suspense fallback={null}>
+            <PostHogPageView />
+          </Suspense>
+          {children}
+        </PostHogProvider>
+      </body>
     </html>
   )
 }

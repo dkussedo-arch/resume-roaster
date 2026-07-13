@@ -14,6 +14,7 @@ import type {
   EvaluationResult,
   EvaluationStatus,
 } from '@/lib/types'
+import { trackExportClicked } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 const STATUS_ORDER: EvaluationStatus[] = [
@@ -228,6 +229,7 @@ export function EvaluationResults({ results }: EvaluationResultsProps) {
   )
 
   const handleExport = () => {
+    trackExportClicked('markdown')
     const report = buildExportReport(results, metrics)
     const slug = (results.title ?? 'evaluation')
       .toLowerCase()
